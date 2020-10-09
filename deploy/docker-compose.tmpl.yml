@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  node-exporter:
+    image: ${IMAGE_NAME}:${IMAGE_TAG:-latest}
+    command:
+      - --path.rootfs=${HOST_PATH}
+      - --path.sysfs=${HOST_PATH}/sys
+      - --path.procfs=${HOST_PATH}/proc
+      - --collector.textfile.directory=${CONFIG_PATH}
+      - --collector.filesystem.ignored-mount-points=^/(sys|proc|dev|etc)($$|/)
+      - --no-collector.ipvs
+    environment:
+      CONFIG_PATH:
+      NODE_ID: '{{.Node.ID}}'
+    networks:
+      monitoring-net:
+    volumes:
+      - /:${HOST_PATH}:ro
+      - /etc/hostname:${CONFIG_PATH}/nodename:ro
+    deploy:
+      mode: global
+      restart_policy:
+        delay: ${RESTART_DELAY:-10s}
+      update_config:
+        delay: ${UPDATE_DELAY:-30s}
+      resources:
+        limits:
+          cpus: '${RESOURCES_LIMITS_CPUS:-0.1}'
+          memory: ${RESOURCES_LIMITS_MEMORY:-32M}
+        reservations:
+          cpus: '${RESOURCES_RESERVATIONS_CPUS:-0.001}'
+          memory: ${RESOURCES_RESERVATIONS_MEMORY:-16M}
+
+networks:
+  monitoring-net:
+    name: ${MONITORING_NET_NAME:-monitoring-net}
+    driver: ${MONITORING_NET_DRIVER:-overlay}
+    external: true
