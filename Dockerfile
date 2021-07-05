@@ -3,7 +3,8 @@ FROM prom/node-exporter:${NODE_EXPORTER_VERSION}
 
 USER root
 COPY rootfs /
-RUN chown -R nobody:nogroup /etc/node-exporter
+RUN mkdir -p /etc/node-exporter && \
+	chown -R nobody:nogroup /etc/node-exporter
 
 USER nobody
 
